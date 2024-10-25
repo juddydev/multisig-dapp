@@ -5,7 +5,7 @@ import { web3FromAddress } from '@polkadot/extension-dapp';
 
 const TransferTokens = () => {
   const location = useLocation();
-  const { multisigAddress, threshold, signatories } = location.state || {}; 
+  const { multisigAddress } = location.state || {}; 
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
   const [api, setApi] = useState(null);
@@ -22,7 +22,6 @@ const TransferTokens = () => {
         const apiInstance = await ApiPromise.create({ provider });
         setApi(apiInstance);
       } catch (err) {
-        console.error('Failed to connect to Polkadot API:', err);
         setError('Failed to connect to Polkadot API');
       }
     };
@@ -39,7 +38,6 @@ const TransferTokens = () => {
         setBalance(free.toString());
         setLoading(false);
       } catch (err) {
-        console.error('Failed to fetch balance:', err);
         setError('Failed to fetch balance. Please check the console for details.');
         setLoading(false);
       }
@@ -85,7 +83,7 @@ const TransferTokens = () => {
       // Send the multisig transaction
       const txHash = await api.tx.multisig
         .asMulti(threshold, signatories, null, transferExtrinsic.method.toHex(), false, transferAmount)
-        .signAndSend(multisigAddress, { nonce, signer: injector.signer }, ({ status }) => {
+        .signAndSend(multisigAddress, { nonce }, ({ status }) => {
           if (status.isInBlock) {
             setSuccessMessage('Transaction included in block.');
           } else if (status.isFinalized) {
@@ -95,8 +93,8 @@ const TransferTokens = () => {
 
       console.log(`Submitted with hash ${txHash}`);
     } catch (err) {
-      console.error('Error transferring tokens:', err);
       setError('Failed to transfer tokens. Please check the console for details.');
+      console.error('Error transferring tokens:', err);
     }
   };
 
